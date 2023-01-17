@@ -53,9 +53,8 @@ class NucAminoAligner():
         self.tripletTable = self.generateTable()
 
         #with open(str(Path(os.path.dirname(__file__))/'data'/'apobec.tsv'), 'r') as csvfile:
-        with open(algorithm.json_filename) as jsonfile:
-            # self.ApobecDRMs = list(csv.reader(csvfile, delimiter='\t'))
-            self.ApobecDRMs = json.load(jsonfile)
+        with open(algorithm.tsv_filename) as csvfile:
+            self.ApobecDRMs = list(csv.reader(csvfile, delimiter='\t'))
 
         self.PI_dict = self.prevalence_parser('PIPrevalences.tsv')
         self.RTI_dict = self.prevalence_parser('RTIPrevalences.tsv')
@@ -170,11 +169,10 @@ class NucAminoAligner():
 
         args = [
             '{}'.format(self.nucamino_binary),  # in case of byte-string
-            "align",
             "hiv1b",
-            "pol",
             "-q",
             "-i", tf.name,
+            "-g=POL",
             '--output-format', 'json',
         ]
         p = subprocess.Popen(args, stdout=subprocess.PIPE)  #, encoding='utf8')
@@ -516,11 +514,11 @@ class NucAminoAligner():
         return ("*" in self.translateNATriplet(triplet))
 
     def isApobecDRM(self, gene, consensus, position, AA):
-        ls = [[row['gene'], str(row['position'])] for row in self.ApobecDRMs]
-        if [gene, str(position)] in ls:
-            i = ls.index([gene, str(position)])
+        ls = [row[0:3] for row in self.ApobecDRMs[1:]]
+        if [gene, consensus, str(position)] in ls:
+            i = ls.index([gene, consensus, str(position)])
             for aa in AA:
-                if aa in self.ApobecDRMs[i]['aa']:
+                if aa in self.ApobecDRMs[1:][i][3]:
                     return True
         return False
 
